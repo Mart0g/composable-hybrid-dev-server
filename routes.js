@@ -4,6 +4,8 @@ const prependLocaleToPath = process.env.PREPEND_LOCALE_TO_PATH === 'true';
 const prependSiteIdToPath = process.env.PREPEND_SITEID_TO_PATH === 'true';
 
 const routes = [
+    { path: "/content" },
+    { path: "/content/:contentId" },
     { path: "/login" },
     { path: "/registration" },
     { path: "/reset-password" },
@@ -11,6 +13,7 @@ const routes = [
     { path: "/account/orders" },
     { path: "/account/orders/:orderNo" },
     { path: "/account/wishlist" },
+    { path: "/page-viewer/:pageId" },
     { path: "/product/:productId" },
     { path: "/search" },
     { path: "/category/:categoryId" }
