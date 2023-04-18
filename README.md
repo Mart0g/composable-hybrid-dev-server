@@ -16,8 +16,7 @@ It serves two sites under the same domain locally and enables developers to test
 
 ### Installation
 ```sh
-git clone git@github.com:SalesforceCommerceCloud/composable-hybrid-dev-server.git
-cd composable-hybrid-dev-server
+git clone git@github.com:SalesforceCommerceCloud/composable-hybrid-dev-server.git && cd composable-hybrid-dev-server
 npm install
 ```
 
@@ -60,7 +59,7 @@ PWA_ORIGIN=https://your-app-name.mobify-storefront.com
 PREPEND_LOCALE_TO_PATH=true
 PREPEND_SITEID_TO_PATH=true
 ```
-The following table describes each of the B2C Commerce specific .env file variables that are leveraged by b2c-crm-sync's build and deployment tools.
+The following table describes each of the .env file variables that are leveraged.
 | Property Name             | Description                                                                                         |
 |---------------------------|-----------------------------------------------------------------------------------------------------|
 | PORT                      | Proxy Port (ex: `8001`)                                                                             |
@@ -115,6 +114,13 @@ Then open browser http://localhost:8001, you should have both the SFRA/SiteGenes
 
 ## Deploy to Heroku
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://dashboard.heroku.com/new-app?template=https://github.com/sandragolden/composable-hybrid-dev-server)
+
+> :zap: When deploying to Heroku, don't forget to add your Heroku App URL as a `redirectUri` on your SLAS Client:
+> ```json 
+> "redirectUri": [
+>    "https://your-app-name.herokuapp.com/callback"
+> ]
+> ```
 
 ## License
 
