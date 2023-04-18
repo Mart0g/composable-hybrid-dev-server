@@ -25,6 +25,10 @@ const PWA_ROUTES = [
     exact: true,
   },
   {
+    path: "/worker.js",
+    exact: true,
+  },
+  {
     path: "/callback",
   },
 ];
