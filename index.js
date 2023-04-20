@@ -51,8 +51,8 @@ const options = {
 
       if (
         match ||
-        req.path.startsWith("/mobify") ||
-        req.path.startsWith("/auth")
+        req.path.startsWith("/auth") ||
+        req.path.startsWith("/mobify")
       ) {
         return PWA_ORIGIN;
       }
