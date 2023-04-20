@@ -1,10 +1,13 @@
-'use strict';
+"use strict";
 
-const express = require('express');
-const { createProxyMiddleware, responseInterceptor } = require('http-proxy-middleware');
-const { matchPath } = require('react-router');
-const dotenv = require('dotenv');
-const dotenvExpand = require('dotenv-expand');
+const express = require("express");
+const {
+  createProxyMiddleware,
+  responseInterceptor,
+} = require("http-proxy-middleware");
+const { matchPath } = require("react-router");
+const dotenv = require("dotenv");
+const dotenvExpand = require("dotenv-expand");
 const env = dotenv.config();
 dotenvExpand.expand(env);
 
@@ -13,11 +16,11 @@ const PROXY_ORIGIN = process.env.PROXY_ORIGIN;
 const SFCC_ORIGIN = process.env.SFCC_ORIGIN;
 const PWA_ORIGIN = process.env.PWA_ORIGIN;
 const MRT_RULES = Object.entries(process.env)
-  .filter(([key, value]) => key.startsWith('MRT_RULE_') && value)
+  .filter(([key, value]) => key.startsWith("MRT_RULE_") && value)
   .map(([_key, value]) => value); // eslint-disable-line no-unused-vars
-const PWA_ROUTES = require('./routes');
-const { evaluateRule } = require('./utils/mrt-rule-matcher');
-const { iterate } = require('./utils/proxyHelpers');
+const PWA_ROUTES = require("./routes");
+const { evaluateRule } = require("./utils/mrt-rule-matcher");
+const { iterate } = require("./utils/proxyHelpers");
 
 const options = {
   target: SFCC_ORIGIN,
@@ -28,12 +31,14 @@ const options = {
   cookieDomainRewrite: true,
   router: (req) => {
     if (MRT_RULES.length) {
-      let match = MRT_RULES.some((rule) => evaluateRule(rule, {
-        host: req.hostname,
-        uri: req.url,
-        path: req.path,
-        cookies: req.headers.cookie || ''
-      }));
+      let match = MRT_RULES.some((rule) =>
+        evaluateRule(rule, {
+          host: req.hostname,
+          uri: req.url,
+          path: req.path,
+          cookies: req.headers.cookie || "",
+        })
+      );
 
       if (match) {
         console.log(`Proxying ${req.path} to ${PWA_ORIGIN}...`);
@@ -44,7 +49,11 @@ const options = {
         return matchPath(req.path, route);
       });
 
-      if (match || req.path.startsWith('/mobify')) {
+      if (
+        match ||
+        req.path.startsWith("/mobify") ||
+        req.path.startsWith("/auth")
+      ) {
         return PWA_ORIGIN;
       }
     }
@@ -55,29 +64,37 @@ const options = {
   selfHandleResponse: true,
   onProxyRes: (proxyRes, req, res) => {
     return responseInterceptor(async (responseBuffer) => {
-      const contentType = proxyRes?.headers['content-type'];
+      const contentType = proxyRes?.headers["content-type"];
       if (!contentType) return responseBuffer;
 
       let response;
       let updatedResponse;
 
-      switch (contentType.split(';')[0]) {
-        case 'text/html':
-          response = responseBuffer.toString('utf8');
+      switch (contentType.split(";")[0]) {
+        case "text/html":
+          response = responseBuffer.toString("utf8");
 
           // some links are absolute URLs, replace them so they go through the proxy
-          updatedResponse = response.replace(new RegExp(`${SFCC_ORIGIN}`, 'g'), PROXY_ORIGIN);
+          updatedResponse = response.replace(
+            new RegExp(`${SFCC_ORIGIN}`, "g"),
+            PROXY_ORIGIN
+          );
 
           // replace any redirects to the SFCC origin with the proxy origin (for example: URLUtils.https)
           if (proxyRes.headers.location?.includes(SFCC_ORIGIN)) {
-            console.log(`Rewriting location header => ${proxyRes.headers.location}`);
-            res.setHeader('location', proxyRes.headers.location.replace(SFCC_ORIGIN, PROXY_ORIGIN));
+            console.log(
+              `Rewriting location header => ${proxyRes.headers.location}`
+            );
+            res.setHeader(
+              "location",
+              proxyRes.headers.location.replace(SFCC_ORIGIN, PROXY_ORIGIN)
+            );
           }
 
           return updatedResponse;
-        case 'application/json':
+        case "application/json":
           try {
-            response = JSON.parse(responseBuffer.toString('utf8'));
+            response = JSON.parse(responseBuffer.toString("utf8"));
             return JSON.stringify(iterate(response, null));
           } catch (e) {
             console.error(`error parsing JSON input: ${e}`);
@@ -87,7 +104,7 @@ const options = {
           return responseBuffer;
       }
     })(proxyRes, req, res);
-  }
+  },
 };
 
 const app = express();
@@ -97,6 +114,6 @@ app.use(createProxyMiddleware(options));
 app.listen(PORT, () => {
   console.log(`Proxy server listening: ${PROXY_ORIGIN}`);
   if (MRT_RULES.length) {
-    console.log('Using MRT rules to determine proxy target');
+    console.log("Using MRT rules to determine proxy target");
   }
 });
